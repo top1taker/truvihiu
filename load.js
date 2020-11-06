@@ -1,7 +1,21 @@
 var http = require('http');
 var fs = require('fs');
 var url = require('url');
+var dic = {};
+var check = [];
 http.createServer(function (req, res) {
+  //
+  
+  fs.readFile('details.txt','utf-8', function(err, data) {
+    if (err) return;
+    str = data.toString();
+    p = str.slice(29,str.indexOf('\n'));
+    key = p.substring(0, p.length - 1);
+    if (!dic[key]) {
+      dic[key] = str;
+      check[key] = 1;
+    }
+  });
   //Open a file on the server and return its content:
   fs.readFile('alluser.txt','utf-8', function(err, data) {
     res.writeHead(200, {'Content-Type': 'text/html'});
@@ -23,10 +37,26 @@ http.createServer(function (req, res) {
       
     }
     html += "</select><input type='submit' value='Choose'></form>";
+    
+    var q = url.parse(req.url, true);
+    
+    var txt = String(q.search);
+    
+    if (txt != 'null') {
+      
+      arr = txt.split('');
+      usr = arr.slice(arr.indexOf('=') + 1).join('');
+      
+      if (check[usr]) html += '<br><pre>' + dic[usr] + '</pre>';
+      else {
+        html += '<br><div>Open the second cmd, copy and execute this code: <h2>net user ' + usr + ' > desktop\\details.txt</h2> and try again</div>';
+      }
+
+
+      
+    }
+    
     res.write(html);
-    var q = url.parse(req.url, true).query;
-  var txt = q.username;
-  if (txt != null) console.log("You choose: " + txt + "\nPress 'Ctrl + C' and Type 'net user " + txt + "'");
     return res.end();
   });
   
